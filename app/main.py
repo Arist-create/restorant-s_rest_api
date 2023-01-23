@@ -1,4 +1,4 @@
-from .database import *
+from database import *
 from sqlalchemy.orm import Session
 from fastapi import Depends, FastAPI, Body
 from fastapi.responses import JSONResponse
@@ -13,7 +13,7 @@ def get_db():
         yield db 
     finally:
         db.close()
-  
+
 @app.get("/api/v1/menus")
 def get_menus(db: Session = Depends(get_db)):
     menus = db.query(Menu).all() 
@@ -93,7 +93,7 @@ def get_submenu(api_test_menu_id, api_test_submenu_id, db: Session = Depends(get
     if submenu == None:
         return JSONResponse(status_code=404, content={"detail": "submenu not found"})
     else:
-        return {"id": str(submenu.id), "title": submenu.title, "description": submenu.description, "dishes_count": len(db.query(Dish).filter(Dish.menu_id == submenu.id).all())}
+        return {"id": str(submenu.id), "title": submenu.title, "description": submenu.description, "dishes_count": len(db.query(Dish).filter(Dish.submenu_id == submenu.id).all())}
 
 @app.post("/api/v1/menus/{api_test_menu_id}/submenus")
 def create_submenu(api_test_menu_id, data = Body(), db: Session = Depends(get_db)):

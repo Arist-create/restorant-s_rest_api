@@ -1,11 +1,13 @@
 version: "3.9"
 services:
   db:
-    image: nouchka/sqlite3:latest
-    volumes:
-      - ./data/db:/root/db
+    image: postgres:15.1-alpine
+    ports:
+      - "2345:5432"
     environment:
-      - DATABASEPATH=db.sqlite3
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "mypassword"
+      POSTGRES_DB: "menu"
   app:
     build: .
     container_name: fastapi-app
@@ -16,3 +18,6 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    environment:
+        DATABASE_URL: "postgresql://postgres:mypassword@db/menu"
+        

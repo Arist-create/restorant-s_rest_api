@@ -1,13 +1,13 @@
-from .conftest import *
-from .main import app, get_db
-from .database_test import *
+from conftest import *
+from main import app, get_db 
+from database import *
 import json
 
 Base.metadata.create_all(bind=engine)
 
 def override_get_db():
       try:
-          db = TestingSessionLocal()
+          db = SessionLocal()
           yield db
       finally:
           db.close()

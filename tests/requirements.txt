@@ -29,4 +29,5 @@ ujson==5.7.0
 uvicorn==0.20.0
 watchfiles==0.18.1
 websockets==10.4
+psycopg2-binary==2.9.5
 pytest==7.2.1
