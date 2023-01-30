@@ -17,6 +17,12 @@ services:
     ports:
       - "6379:6379"
     command: redis-server
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   app:
     build: .
@@ -28,4 +34,6 @@ services:
       - "8000:8000"
     depends_on:
       db:
+        condition: service_healthy
+      cache:
         condition: service_healthy
