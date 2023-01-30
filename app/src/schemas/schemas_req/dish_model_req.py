@@ -1,4 +1,6 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import Field, SQLModel
+
+
 class create_dish_req(SQLModel):
     title: str | None = Field(
         title='Наименование блюда',
@@ -12,12 +14,13 @@ class create_dish_req(SQLModel):
         title='Цена блюда',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My dish',
                 'description': 'My dish description',
-                'price': '12.50'
+                'price': '12.50',
             },
         }
 
@@ -35,11 +38,12 @@ class update_dish_req(SQLModel):
         title='Цена блюда',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My updated dish',
                 'description': 'My updated dish description',
-                'price': '12.50'
+                'price': '12.50',
             },
         }

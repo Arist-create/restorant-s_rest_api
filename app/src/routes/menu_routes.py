@@ -1,12 +1,10 @@
-from fastapi import Body, Depends, APIRouter
-from sqlalchemy.orm import Session
-from database import get_db
 import http
 
+from database import get_db
+from fastapi import APIRouter, Body, Depends
+from sqlalchemy.orm import Session
 from src.responses.menu_resp import Menu_resp
-
 from src.schemas.schemas_req.menu_model_req import create_menu_req, update_menu_req
-
 from src.schemas.schemas_resp.menu_model_resp import (
     create_menu_resp,
     delete_menu_resp,
@@ -15,6 +13,7 @@ from src.schemas.schemas_resp.menu_model_resp import (
 )
 
 router = APIRouter()
+
 
 @router.get(path='/api/v1/menus', response_model=list[get_menu_resp], summary='Список меню', status_code=http.HTTPStatus.OK)
 def get_menus(db: Session = Depends(get_db)):

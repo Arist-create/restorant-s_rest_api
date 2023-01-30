@@ -1,21 +1,13 @@
 import http
 
 from database import get_db
-
-from fastapi import Body, Depends, APIRouter
-
+from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
-
 from src.responses.submenu_resp import Submenu_resp
-
-
-
 from src.schemas.schemas_req.submenu_model_req import (
     create_submenu_req,
     update_submenu_req,
 )
-
-
 from src.schemas.schemas_resp.submenu_model_resp import (
     create_submenu_resp,
     delete_submenu_resp,
@@ -23,8 +15,8 @@ from src.schemas.schemas_resp.submenu_model_resp import (
     update_submenu_resp,
 )
 
-
 router = APIRouter()
+
 
 @router.get('/api/v1/menus/{api_test_menu_id}/submenus', response_model=list[get_submenu_resp], summary='Список подменю', status_code=http.HTTPStatus.OK)
 def get_submenus(api_test_menu_id, db: Session = Depends(get_db)):

@@ -3,9 +3,9 @@
 ___
 *To launch the app - enter the command:*
 ```python
-docker-compose -f docker-compose.yml up
+docker-compose -f docker-compose.yaml up
 ```
 *If you want to run tests - enter the command:*
 ```python
-docker-compose -f docker-compose.tests.yml up
+docker-compose -f docker-compose.tests.yaml up
 ```

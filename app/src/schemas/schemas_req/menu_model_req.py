@@ -1,4 +1,6 @@
-from sqlmodel import SQLModel, Field 
+from sqlmodel import Field, SQLModel
+
+
 class create_menu_req(SQLModel):
     title: str | None = Field(
         title='Наименование меню',
@@ -8,13 +10,15 @@ class create_menu_req(SQLModel):
         title='Описание меню',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My menu',
                 'description': 'My menu description',
             },
         }
+
 
 class update_menu_req(SQLModel):
     title: str | None = Field(
@@ -25,12 +29,11 @@ class update_menu_req(SQLModel):
         title='Описание меню',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My updated menu',
                 'description': 'My updated menu description',
             },
         }
-    
-

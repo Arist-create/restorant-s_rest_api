@@ -1,10 +1,10 @@
-from sqlalchemy import Column, Integer, String
 from database import Base
+from sqlalchemy import Column, Integer, String
 
 
 class Dish(Base):
-    __tablename__ = "dishes"
-    
+    __tablename__ = 'dishes'
+
     id = Column(Integer, primary_key=True)
     menu_id = Column(Integer)
     submenu_id = Column(Integer)

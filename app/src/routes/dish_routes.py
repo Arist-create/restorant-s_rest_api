@@ -1,16 +1,10 @@
-from fastapi import Body, Depends, APIRouter
 import http
+
 from database import get_db
-
-
+from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
 from src.responses.dish_resp import Dish_resp
-
-
-
 from src.schemas.schemas_req.dish_model_req import create_dish_req, update_dish_req
-
-
 from src.schemas.schemas_resp.dish_model_resp import (
     create_dish_resp,
     delete_dish_resp,
@@ -19,6 +13,7 @@ from src.schemas.schemas_resp.dish_model_resp import (
 )
 
 router = APIRouter()
+
 
 @router.get('/api/v1/menus/{api_test_menu_id}/submenus/{api_test_submenu_id}/dishes', response_model=list[get_dish_resp], summary='Список блюд', status_code=http.HTTPStatus.OK)
 def get_dishes(api_test_menu_id, api_test_submenu_id, db: Session = Depends(get_db)):

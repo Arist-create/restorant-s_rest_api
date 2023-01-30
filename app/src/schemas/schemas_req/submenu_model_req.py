@@ -1,4 +1,6 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import Field, SQLModel
+
+
 class create_submenu_req(SQLModel):
     title: str | None = Field(
         title='Наименование подменю',
@@ -8,13 +10,15 @@ class create_submenu_req(SQLModel):
         title='Описание подменю',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My submenu',
                 'description': 'My submenu description',
             },
         }
+
 
 class update_submenu_req(SQLModel):
     title: str | None = Field(
@@ -25,9 +29,10 @@ class update_submenu_req(SQLModel):
         title='Описание подменю',
         max_length=255,
     )
+
     class Config:
         schema_extra = {
-            'example':{
+            'example': {
                 'title': 'My updated submenu',
                 'description': 'My updated submenu description',
             },
