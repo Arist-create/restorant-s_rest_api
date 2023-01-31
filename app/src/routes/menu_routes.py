@@ -3,38 +3,60 @@ import http
 from database import get_db
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
-from src.responses.menu_resp import Menu_resp
-from src.schemas.schemas_req.menu_model_req import create_menu_req, update_menu_req
-from src.schemas.schemas_resp.menu_model_resp import (
-    create_menu_resp,
-    delete_menu_resp,
-    get_menu_resp,
-    update_menu_resp,
+from src.responses.menu_resp import MenuResp
+from src.schem.schem_req.menu_mod import CreateMenuReq, UpdateMenuReq
+from src.schem.schem_resp.menu_mod import (
+    CreateMenuResp,
+    DeleteMenuResp,
+    GetMenuResp,
+    UpdateMenuResp,
 )
 
 router = APIRouter()
 
 
-@router.get(path='/api/v1/menus', response_model=list[get_menu_resp], summary='Список меню', status_code=http.HTTPStatus.OK)
+@router.get(
+    path='/api/v1/menus',
+    response_model=list[GetMenuResp],
+    summary='Список меню',
+    status_code=http.HTTPStatus.OK,
+)
 def get_menus(db: Session = Depends(get_db)):
-    return Menu_resp.get_menus(db)
+    return MenuResp.get_menus(db)
 
 
-@router.get(path='/api/v1/menus/{api_test_menu_id}', response_model=get_menu_resp, summary='Конкретное меню', status_code=http.HTTPStatus.OK)
-def get_menu(api_test_menu_id, db: Session = Depends(get_db)):
-    return Menu_resp.get_menu(api_test_menu_id, db)
+@router.get(
+    path='/api/v1/menus/{menu_id}',
+    response_model=GetMenuResp,
+    summary='Конкретное меню',
+    status_code=http.HTTPStatus.OK,
+)
+def get_menu(menu_id, db: Session = Depends(get_db)):
+    return MenuResp.get_menu(menu_id, db)
 
 
-@router.post('/api/v1/menus', response_model=create_menu_resp, summary='Создать меню', status_code=http.HTTPStatus.CREATED)
-def create_menu(data: create_menu_req = Body(), db: Session = Depends(get_db)):
-    return Menu_resp.create_menu(data, db)
+@router.post(
+    '/api/v1/menus', response_model=CreateMenuResp,
+    summary='Создать меню', status_code=http.HTTPStatus.CREATED,
+)
+def create_menu(data: CreateMenuReq = Body(), db: Session = Depends(get_db)):
+    return MenuResp.create_menu(data, db)
 
 
-@router.patch('/api/v1/menus/{api_test_menu_id}', response_model=update_menu_resp, summary='Обновить меню', status_code=http.HTTPStatus.OK)
-def edit_menu(api_test_menu_id, data: update_menu_req = Body(), db: Session = Depends(get_db)):
-    return Menu_resp.edit_menu(api_test_menu_id, data, db)
+@router.patch(
+    '/api/v1/menus/{menu_id}', response_model=UpdateMenuResp,
+    summary='Обновить меню', status_code=http.HTTPStatus.OK,
+)
+def edit_menu(
+    menu_id, data: UpdateMenuReq = Body(),
+    db: Session = Depends(get_db),
+):
+    return MenuResp.edit_menu(menu_id, data, db)
 
 
-@router.delete('/api/v1/menus/{api_test_menu_id}', response_model=delete_menu_resp, summary='Удалить меню', status_code=http.HTTPStatus.OK)
-def delete_menu(api_test_menu_id, db: Session = Depends(get_db)):
-    return Menu_resp.delete_menu(api_test_menu_id, db)
+@router.delete(
+    '/api/v1/menus/{menu_id}', response_model=DeleteMenuResp,
+    summary='Удалить меню', status_code=http.HTTPStatus.OK,
+)
+def delete_menu(menu_id, db: Session = Depends(get_db)):
+    return MenuResp.delete_menu(menu_id, db)

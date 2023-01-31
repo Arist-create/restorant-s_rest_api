@@ -2,69 +2,77 @@ import json
 
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from src.DAO.submenu_DAO import SubmenuDAO
+from src.DAO.submenu_DAO import SubmenuDao
 from src.responses.dish_resp import r
 
 
-class Submenu_resp:
+class SubmenuResp:
 
-    def get_submenus(api_test_menu_id, db: Session):
-        submenus = r.get(json.dumps([api_test_menu_id, 'submenus']))
+    def get_submenus(menu_id, db: Session):
+        submenus = r.get(json.dumps([menu_id, 'submenus']))
         if submenus is not None:
             return json.loads(submenus)
         else:
-            submenus = SubmenuDAO.get_submenus(api_test_menu_id, db)
+            submenus = SubmenuDao.get_submenus(menu_id, db)
             r.set(
-                json.dumps([api_test_menu_id, 'submenus']),
+                json.dumps([menu_id, 'submenus']),
                 json.dumps(submenus),
             )
             return submenus
 
-    def get_submenu(api_test_menu_id, api_test_submenu_id, db: Session):
-        submenu = r.get(json.dumps([api_test_menu_id, api_test_submenu_id]))
+    def get_submenu(menu_id, submenu_id, db: Session):
+        submenu = r.get(json.dumps([menu_id, submenu_id]))
         if submenu is not None:
             return json.loads(submenu)
         else:
-            submenu = SubmenuDAO.get_submenu(
-                api_test_menu_id, api_test_submenu_id, db,
+            submenu = SubmenuDao.get_submenu(
+                menu_id, submenu_id, db,
             )
             r.set(
                 json.dumps(
-                    [api_test_menu_id, api_test_submenu_id],
+                    [menu_id, submenu_id],
                 ), json.dumps(submenu),
             )
             if submenu is None:
-                return JSONResponse(status_code=404, content={'detail': 'submenu not found'})
+                return JSONResponse(
+                    status_code=404, content={
+                        'detail': 'submenu not found',
+                    },
+                )
             else:
                 return submenu
 
-    def create_submenu(api_test_menu_id, data, db: Session):
+    def create_submenu(menu_id, data, db: Session):
         r.delete(
-            json.dumps([api_test_menu_id, 'submenus']),
-            api_test_menu_id, 'menus',
+            json.dumps([menu_id, 'submenus']),
+            menu_id, 'menus',
         )
-        content = SubmenuDAO.create_submenu(api_test_menu_id, data, db)
+        content = SubmenuDao.create_submenu(menu_id, data, db)
         return JSONResponse(status_code=201, content=content)
 
-    def edit_submenu(api_test_menu_id, api_test_submenu_id, data, db: Session):
+    def edit_submenu(menu_id, submenu_id, data, db: Session):
         r.delete(
-            json.dumps([api_test_menu_id, 'submenus']), json.dumps(
-                [api_test_menu_id, api_test_submenu_id],
-            ), api_test_menu_id, 'menus',
+            json.dumps([menu_id, 'submenus']), json.dumps(
+                [menu_id, submenu_id],
+            ), menu_id, 'menus',
         )
-        submenu = SubmenuDAO.edit_submenu(
-            api_test_menu_id, api_test_submenu_id, data, db,
+        submenu = SubmenuDao.edit_submenu(
+            menu_id, submenu_id, data, db,
         )
         if submenu is None:
-            return JSONResponse(status_code=404, content={'detail': 'submenu not found'})
+            return JSONResponse(
+                status_code=404, content={
+                    'detail': 'submenu not found',
+                },
+            )
         else:
             return submenu
 
-    def delete_submenu(api_test_menu_id, api_test_submenu_id, db: Session):
+    def delete_submenu(menu_id, submenu_id, db: Session):
         r.delete(
-            json.dumps([api_test_menu_id, 'submenus']), json.dumps(
-                [api_test_menu_id, api_test_submenu_id],
-            ), api_test_menu_id, 'menus',
+            json.dumps([menu_id, 'submenus']), json.dumps(
+                [menu_id, submenu_id],
+            ), menu_id, 'menus',
         )
-        SubmenuDAO.delete_submenu(api_test_menu_id, api_test_submenu_id, db)
+        SubmenuDao.delete_submenu(menu_id, submenu_id, db)
         return {'status': True, 'message': 'The submenu has been deleted'}

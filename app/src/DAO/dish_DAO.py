@@ -2,11 +2,18 @@ from sqlalchemy.orm import Session
 from src.table_models.dish import Dish
 
 
-class DishDAO:
+class DishDao:
     @staticmethod
-    def get_dishes(api_test_menu_id, api_test_submenu_id, db: Session):
-        dishes = db.query(Dish.id, Dish.title, Dish.description, Dish.price).filter(
-            Dish.menu_id == api_test_menu_id, Dish.submenu_id == api_test_submenu_id,
+    def get_dishes(
+        menu_id, submenu_id,
+        db: Session,
+    ):
+        dishes = db.query(
+            Dish.id, Dish.title,
+            Dish.description, Dish.price,
+        ).filter(
+            Dish.menu_id == menu_id,
+            Dish.submenu_id == submenu_id,
         ).all()
         arr: list = [
             {
@@ -19,21 +26,37 @@ class DishDAO:
         return arr
 
     @staticmethod
-    def get_dish(api_test_menu_id, api_test_submenu_id, api_test_dish_id, db: Session):
-        dish = db.query(Dish.id, Dish.title, Dish.description, Dish.price).filter(
-            Dish.menu_id == api_test_menu_id, Dish.submenu_id == api_test_submenu_id, Dish.id == api_test_dish_id,
+    def get_dish(
+        menu_id, submenu_id,
+        dish_id, db: Session,
+    ):
+        dish = db.query(
+            Dish.id, Dish.title,
+            Dish.description, Dish.price,
+        ).filter(
+            Dish.menu_id == menu_id,
+            Dish.submenu_id == submenu_id,
+            Dish.id == dish_id,
         ).first()
         if dish is not None:
-            return {'id': str(dish.id), 'title': dish.title, 'description': dish.description, 'price': dish.price}
+            return {
+                'id': str(dish.id), 'title': dish.title,
+                'description': dish.description, 'price': dish.price,
+            }
         else:
             return
 
     @staticmethod
-    def create_dish(api_test_menu_id, api_test_submenu_id, data, db: Session):
+    def create_dish(
+        menu_id, submenu_id,
+        data, db: Session,
+    ):
         dish = Dish(
-            menu_id=api_test_menu_id, submenu_id=api_test_submenu_id, title=getattr(
-                data, 'title',
-            ), description=getattr(data, 'description'), price=getattr(data, 'price'),
+            menu_id=menu_id,
+            submenu_id=submenu_id,
+            title=getattr(data, 'title'),
+            description=getattr(data, 'description'),
+            price=getattr(data, 'price'),
         )
         db.add(dish)
         db.commit()
@@ -46,10 +69,14 @@ class DishDAO:
         }
 
     @staticmethod
-    def edit_dish(api_test_menu_id, api_test_submenu_id, api_test_dish_id, data, db: Session):
+    def edit_dish(
+        menu_id, submenu_id,
+        dish_id, data, db: Session,
+    ):
         dish = db.query(Dish).filter(
-            Dish.menu_id == api_test_menu_id, Dish.submenu_id ==
-            api_test_submenu_id, Dish.id == api_test_dish_id,
+            Dish.menu_id == menu_id,
+            Dish.submenu_id == submenu_id,
+            Dish.id == dish_id,
         ).first()
         if dish is not None:
             dish.title = data.title
@@ -67,10 +94,14 @@ class DishDAO:
             return
 
     @staticmethod
-    def delete_dish(api_test_menu_id, api_test_submenu_id, api_test_dish_id, db: Session):
+    def delete_dish(
+        menu_id, submenu_id,
+        dish_id, db: Session,
+    ):
         dish = db.query(Dish).filter(
-            Dish.menu_id == api_test_menu_id, Dish.submenu_id ==
-            api_test_submenu_id, Dish.id == api_test_dish_id,
+            Dish.menu_id == menu_id,
+            Dish.submenu_id == submenu_id,
+            Dish.id == dish_id,
         ).first()
         db.delete(dish)
         db.commit()

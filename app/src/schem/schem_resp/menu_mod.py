@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class get_menu_resp(BaseModel):
+class GetMenuResp(BaseModel):
     id: str = '1'
     title: str = 'My menu'
     description: str = 'My menu description'
@@ -9,7 +9,7 @@ class get_menu_resp(BaseModel):
     dishes_count: int = 0
 
 
-class create_menu_resp(BaseModel):
+class CreateMenuResp(BaseModel):
     id: str = '1'
     title: str = 'My menu'
     description: str = 'My menu description'
@@ -17,7 +17,7 @@ class create_menu_resp(BaseModel):
     dishes_count: int = 0
 
 
-class update_menu_resp(BaseModel):
+class UpdateMenuResp(BaseModel):
     id: str = '1'
     title: str = 'My updated menu'
     description: str = 'My updated menu description'
@@ -25,6 +25,6 @@ class update_menu_resp(BaseModel):
     dishes_count: int = 0
 
 
-class delete_menu_resp(BaseModel):
+class DeleteMenuResp(BaseModel):
     status: bool = True
     message: str = 'The menu has been deleted'

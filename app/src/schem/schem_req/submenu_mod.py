@@ -1,7 +1,7 @@
 from sqlmodel import Field, SQLModel
 
 
-class create_submenu_req(SQLModel):
+class CreateSubmenuReq(SQLModel):
     title: str | None = Field(
         title='Наименование подменю',
         max_length=30,
@@ -20,7 +20,7 @@ class create_submenu_req(SQLModel):
         }
 
 
-class update_submenu_req(SQLModel):
+class UpdateSubmenuReq(SQLModel):
     title: str | None = Field(
         title='Наименование подменю',
         max_length=30,

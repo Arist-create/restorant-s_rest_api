@@ -3,41 +3,57 @@ from src.table_models.dish import Dish
 from src.table_models.submenu import Submenu
 
 
-class SubmenuDAO:
+class SubmenuDao:
     @staticmethod
-    def get_submenus(api_test_menu_id, db: Session):
-        submenus = db.query(Submenu.id, Submenu.title, Submenu.description).filter(
-            Submenu.menu_id == api_test_menu_id,
+    def get_submenus(menu_id, db: Session):
+        submenus = db.query(
+            Submenu.id,
+            Submenu.title,
+            Submenu.description,
+        ).filter(
+            Submenu.menu_id == menu_id,
         ).all()
         arr: list = [
             {
                 'id': str(i.id),
                 'title': i.title,
                 'description': i.description,
-                'dishes_count': len(db.query(Dish).filter(Dish.menu_id == i.id).all()),
+                'dishes_count': len(
+                    db.query(Dish).filter(
+                        Dish.menu_id == i.id,
+                    ).all(),
+                ),
             } for i in submenus
         ]
         return arr
 
     @staticmethod
-    def get_submenu(api_test_menu_id, api_test_submenu_id, db: Session):
-        submenu = db.query(Submenu.id, Submenu.title, Submenu.description).filter(
-            Submenu.menu_id == api_test_menu_id, Submenu.id == api_test_submenu_id,
+    def get_submenu(menu_id, submenu_id, db: Session):
+        submenu = db.query(
+            Submenu.id, Submenu.title,
+            Submenu.description,
+        ).filter(
+            Submenu.menu_id == menu_id,
+            Submenu.id == submenu_id,
         ).first()
         if submenu is not None:
             return {
                 'id': str(submenu.id),
                 'title': submenu.title,
                 'description': submenu.description,
-                'dishes_count': len(db.query(Dish).filter(Dish.submenu_id == submenu.id).all()),
+                'dishes_count': len(
+                    db.query(Dish).filter(
+                        Dish.submenu_id == submenu.id,
+                    ).all(),
+                ),
             }
         else:
             return
 
     @staticmethod
-    def create_submenu(api_test_menu_id, data, db: Session):
+    def create_submenu(menu_id, data, db: Session):
         submenu = Submenu(
-            menu_id=api_test_menu_id, title=getattr(
+            menu_id=menu_id, title=getattr(
                 data, 'title',
             ), description=getattr(data, 'description'),
         )
@@ -48,13 +64,18 @@ class SubmenuDAO:
             'id': str(submenu.id),
             'title': submenu.title,
             'description': submenu.description,
-            'dishes_count': len(db.query(Dish).filter(Dish.submenu_id == submenu.id).all()),
+            'dishes_count': len(
+                db.query(Dish).filter(
+                    Dish.submenu_id == submenu.id,
+                ).all(),
+            ),
         }
 
     @staticmethod
-    def edit_submenu(api_test_menu_id, api_test_submenu_id, data, db: Session):
+    def edit_submenu(menu_id, submenu_id, data, db: Session):
         submenu = db.query(Submenu).filter(
-            Submenu.menu_id == api_test_menu_id, Submenu.id == api_test_submenu_id,
+            Submenu.menu_id == menu_id,
+            Submenu.id == submenu_id,
         ).first()
         if submenu is not None:
             submenu.title = data.title
@@ -65,19 +86,24 @@ class SubmenuDAO:
                 'id': str(submenu.id),
                 'title': submenu.title,
                 'description': submenu.description,
-                'dishes_count': len(db.query(Dish).filter(Dish.submenu_id == submenu.id).all()),
+                'dishes_count': len(
+                    db.query(Dish).filter(
+                        Dish.submenu_id == submenu.id,
+                    ).all(),
+                ),
             }
         else:
             return
 
     @staticmethod
-    def delete_submenu(api_test_menu_id, api_test_submenu_id, db: Session):
+    def delete_submenu(menu_id, submenu_id, db: Session):
         submenu = db.query(Submenu).filter(
-            Submenu.menu_id == api_test_menu_id, Submenu.id == api_test_submenu_id,
+            Submenu.menu_id == menu_id,
+            Submenu.id == submenu_id,
         ).first()
         db.delete(submenu)
         dishes = db.query(Dish).filter(
-            Dish.submenu_id == api_test_submenu_id,
+            Dish.submenu_id == submenu_id,
         ).all()
         for i in dishes:
             db.delete(i)

@@ -1,7 +1,7 @@
 from sqlmodel import Field, SQLModel
 
 
-class create_menu_req(SQLModel):
+class CreateMenuReq(SQLModel):
     title: str | None = Field(
         title='Наименование меню',
         max_length=30,
@@ -20,7 +20,7 @@ class create_menu_req(SQLModel):
         }
 
 
-class update_menu_req(SQLModel):
+class UpdateMenuReq(SQLModel):
     title: str | None = Field(
         title='Наименование меню',
         max_length=30,
