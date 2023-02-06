@@ -11,6 +11,30 @@ services:
       retries: 5
     env_file:
       - .env
+
+  rabbitmq:
+    image: rabbitmq:latest
+    restart: on-failure
+    ports:
+      - "5672:5672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    command: celery -A worker.celery worker -l INFO
+    restart: on-failure
+    volumes:
+      - .:/code
+    depends_on:
+      cache:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   cache:
     image: redis:latest
     ports:

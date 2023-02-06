@@ -1,74 +1,87 @@
 import json
 
-from database import Base, SessionLocal, engine, get_db
+from conftest import AsyncClient
+from database import AsyncSession, engine, get_db, init_db, sessionmaker
 from main import app
 
-Base.metadata.create_all(bind=engine)
 
-
-def override_get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
+async def override_get_db() -> AsyncSession:
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as db:
+        try:
+            yield db
+        finally:
+            await db.close()
 
 
 app.dependency_overrides[get_db] = override_get_db
 
 
-def test_create_menu(test_app):
-    test_request = {'title': 'Menu 1', 'description': 'My menu 1'}
-    response = test_app.post('/api/v1/menus', content=json.dumps(test_request))
+async def test_create_menu(test_app: AsyncClient):
+    await init_db()
+    test_request = {"title": "Menu 1", "description": "My menu 1"}
+    response = await test_app.post(
+        "/api/v1/menus", content=json.dumps(test_request)
+    )
 
     global menuid
-    menuid = response.json()['id']
+    menuid = response.json()["id"]  # type: ignore
 
 
-def test_get_menus(test_app):
-    response = test_app.get('/api/v1/menus')
+async def test_get_menus(test_app):
+    response = await test_app.get("/api/v1/menus")
 
     assert response.status_code == 200
-    assert response.json() == [{
-        'id': menuid, 'title': 'Menu 1',
-        'description': 'My menu 1', 'submenus_count': 0, 'dishes_count': 0,
-    }]
+    assert response.json() == [
+        {
+            "id": menuid,
+            "title": "Menu 1",
+            "description": "My menu 1",
+            "submenus_count": 0,
+            "dishes_count": 0,
+        }
+    ]
 
 
-def test_get_menu(test_app):
+async def test_get_menu(test_app):
     menu_id = int(menuid)
-    response = test_app.get(f'/api/v1/menus/{menu_id}')
+    response = await test_app.get(f"/api/v1/menus/{menu_id}")
 
     assert response.status_code == 200
     assert response.json() == {
-        'id': menuid, 'title': 'Menu 1',
-        'description': 'My menu 1', 'submenus_count': 0, 'dishes_count': 0,
+        "id": menuid,
+        "title": "Menu 1",
+        "description": "My menu 1",
+        "submenus_count": 0,
+        "dishes_count": 0,
     }
 
 
-def test_get_menu_invalid_json(test_app):
+async def test_get_menu_invalid_json(test_app):
     menu_id = int(menuid) + 1
-    response = test_app.get(f'/api/v1/menus/{menu_id}')
+    response = await test_app.get(f"/api/v1/menus/{menu_id}")
 
     assert response.status_code == 404
-    assert response.json() == {'detail': 'menu not found'}
+    assert response.json() == {"detail": "menu not found"}
 
 
-def test_edit_menu(test_app):
+async def test_edit_menu(test_app):
     test_request = {
-        'title': 'UPDATED Menu 1',
-        'description': 'My UPDATED menu 1',
+        "title": "UPDATED Menu 1",
+        "description": "My UPDATED menu 1",
     }
     test_response = {
-        'id': menuid,
-        'title': 'UPDATED Menu 1',
-        'description': 'My UPDATED menu 1',
-        'submenus_count': 0,
-        'dishes_count': 0,
+        "id": menuid,
+        "title": "UPDATED Menu 1",
+        "description": "My UPDATED menu 1",
+        "submenus_count": 0,
+        "dishes_count": 0,
     }
     menu_id = int(menuid)
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}",
         content=json.dumps(test_request),
     )
 
@@ -76,15 +89,15 @@ def test_edit_menu(test_app):
     assert response.json() == test_response
 
 
-def test_edit_menu_invalid_json(test_app):
+async def test_edit_menu_invalid_json(test_app):
     test_request = {
-        'title': 'UPDATED Menu 1',
-        'description': 'My UPDATED menu 1',
+        "title": "UPDATED Menu 1",
+        "description": "My UPDATED menu 1",
     }
-    test_response = {'detail': 'menu not found'}
+    test_response = {"detail": "menu not found"}
     menu_id = int(menuid) + 1
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}",
         content=json.dumps(test_request),
     )
 
@@ -92,67 +105,75 @@ def test_edit_menu_invalid_json(test_app):
     assert response.json() == test_response
 
 
-def test_create_submenu(test_app):
-    test_request = {'title': 'Submenu 1', 'description': 'My submenu 1'}
+async def test_create_submenu(test_app):
+    test_request = {"title": "Submenu 1", "description": "My submenu 1"}
     menu_id = int(menuid)
-    response = test_app.post(
-        f'/api/v1/menus/{menu_id}/submenus',
+    response = await test_app.post(
+        f"/api/v1/menus/{menu_id}/submenus",
         content=json.dumps(test_request),
     )
 
     global submenuid
-    submenuid = response.json()['id']
+    submenuid = response.json()["id"]
 
 
-def test_get_submenus(test_app):
+async def test_get_submenus(test_app):
     menu_id = int(menuid)
-    response = test_app.get(f'/api/v1/menus/{menu_id}/submenus')
+    response = await test_app.get(f"/api/v1/menus/{menu_id}/submenus")
 
     assert response.status_code == 200
-    assert response.json() == [{
-        'id': submenuid, 'title': 'Submenu 1',
-        'description': 'My submenu 1', 'dishes_count': 0,
-    }]
+    assert response.json() == [
+        {
+            "id": submenuid,
+            "title": "Submenu 1",
+            "description": "My submenu 1",
+            "dishes_count": 0,
+        }
+    ]
 
 
-def test_get_submenu(test_app):
+async def test_get_submenu(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
-    response = test_app.get(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}',
+    response = await test_app.get(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}",
     )
 
     assert response.status_code == 200
     assert response.json() == {
-        'id': submenuid, 'title': 'Submenu 1',
-        'description': 'My submenu 1', 'dishes_count': 0,
+        "id": submenuid,
+        "title": "Submenu 1",
+        "description": "My submenu 1",
+        "dishes_count": 0,
     }
 
 
-def test_get_submenu_invalid_json(test_app):
+async def test_get_submenu_invalid_json(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid) + 1
-    response = test_app.get(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}',
+    response = await test_app.get(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}",
     )
 
     assert response.status_code == 404
-    assert response.json() == {'detail': 'submenu not found'}
+    assert response.json() == {"detail": "submenu not found"}
 
 
-def test_edit_submenu(test_app):
+async def test_edit_submenu(test_app):
     test_request = {
-        'title': 'UPDATED Submenu 1',
-        'description': 'My UPDATED submenu 1',
+        "title": "UPDATED Submenu 1",
+        "description": "My UPDATED submenu 1",
     }
     test_response = {
-        'id': submenuid, 'title': 'UPDATED Submenu 1',
-        'description': 'My UPDATED submenu 1', 'dishes_count': 0,
+        "id": submenuid,
+        "title": "UPDATED Submenu 1",
+        "description": "My UPDATED submenu 1",
+        "dishes_count": 0,
     }
     menu_id = int(menuid)
     submenu_id = int(submenuid)
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}",
         content=json.dumps(test_request),
     )
 
@@ -160,16 +181,16 @@ def test_edit_submenu(test_app):
     assert response.json() == test_response
 
 
-def test_edit_submenu_invalid_json(test_app):
+async def test_edit_submenu_invalid_json(test_app):
     test_request = {
-        'title': 'UPDATED Submenu 1',
-        'description': 'My UPDATED submenu 1',
+        "title": "UPDATED Submenu 1",
+        "description": "My UPDATED submenu 1",
     }
-    test_response = {'detail': 'submenu not found'}
+    test_response = {"detail": "submenu not found"}
     menu_id = int(menuid)
     submenu_id = int(submenuid) + 1
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}",
         content=json.dumps(test_request),
     )
 
@@ -177,79 +198,87 @@ def test_edit_submenu_invalid_json(test_app):
     assert response.json() == test_response
 
 
-def test_create_dish(test_app):
+async def test_create_dish(test_app):
     test_request = {
-        'title': 'Dish 1',
-        'description': 'My dish 1', 'price': '10.00',
+        "title": "Dish 1",
+        "description": "My dish 1",
+        "price": "10.00",
     }
     menu_id = int(menuid)
     submenu_id = int(submenuid)
-    response = test_app.post(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes',
+    response = await test_app.post(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes",
         content=json.dumps(test_request),
     )
 
     global dishid
-    dishid = response.json()['id']
+    dishid = response.json()["id"]
 
 
-def test_get_dishes(test_app):
+async def test_get_dishes(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
-    response = test_app.get(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes',
+    response = await test_app.get(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes",
     )
 
     assert response.status_code == 200
     assert response.json() == [
         {
-            'id': dishid, 'title': 'Dish 1',
-            'description': 'My dish 1', 'price': '10.00',
+            "id": dishid,
+            "title": "Dish 1",
+            "description": "My dish 1",
+            "price": "10.00",
         },
     ]
 
 
-def test_get_dish(test_app):
+async def test_get_dish(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
     dish_id = int(dishid)
-    response = test_app.get(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    response = await test_app.get(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
     )
 
     assert response.status_code == 200
     assert response.json() == {
-        'id': dishid, 'title': 'Dish 1',
-        'description': 'My dish 1', 'price': '10.00',
+        "id": dishid,
+        "title": "Dish 1",
+        "description": "My dish 1",
+        "price": "10.00",
     }
 
 
-def test_get_dish_invalid_json(test_app):
+async def test_get_dish_invalid_json(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
     dish_id = int(dishid) + 1
-    response = test_app.get(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    response = await test_app.get(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
     )
 
     assert response.status_code == 404
-    assert response.json() == {'detail': 'dish not found'}
+    assert response.json() == {"detail": "dish not found"}
 
 
-def test_edit_dish(test_app):
+async def test_edit_dish(test_app):
     test_request = {
-        'title': 'UPDATED Dish 1',
-        'description': 'My UPDATED dish 1', 'price': '10.00',
+        "title": "UPDATED Dish 1",
+        "description": "My UPDATED dish 1",
+        "price": "10.00",
     }
     test_response = {
-        'id': dishid, 'title': 'UPDATED Dish 1',
-        'description': 'My UPDATED dish 1', 'price': '10.00',
+        "id": dishid,
+        "title": "UPDATED Dish 1",
+        "description": "My UPDATED dish 1",
+        "price": "10.00",
     }
     menu_id = int(menuid)
     submenu_id = int(submenuid)
     dish_id = int(dishid)
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
         content=json.dumps(test_request),
     )
 
@@ -257,17 +286,18 @@ def test_edit_dish(test_app):
     assert response.json() == test_response
 
 
-def test_edit_dish_invalid_json(test_app):
+async def test_edit_dish_invalid_json(test_app):
     test_request = {
-        'title': 'UPDATED Dish 1',
-        'description': 'My UPDATED Dish 1', 'price': '10.00',
+        "title": "UPDATED Dish 1",
+        "description": "My UPDATED Dish 1",
+        "price": "10.00",
     }
-    test_response = {'detail': 'dish not found'}
+    test_response = {"detail": "dish not found"}
     menu_id = int(menuid)
     submenu_id = int(submenuid)
     dish_id = int(dishid) + 1
-    response = test_app.patch(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    response = await test_app.patch(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
         content=json.dumps(test_request),
     )
 
@@ -275,41 +305,48 @@ def test_edit_dish_invalid_json(test_app):
     assert response.json() == test_response
 
 
-def test_delete_dish(test_app):
+async def test_delete_dish(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
     dish_id = int(dishid)
-    response = test_app.delete(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
+    response = await test_app.delete(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
     )
 
     assert response.status_code == 200
     assert response.json() == {
-        'status': True,
-        'message': 'The dish has been deleted',
+        "status": True,
+        "message": "The dish has been deleted",
     }
 
 
-def test_delete_submenu(test_app):
+async def test_delete_submenu(test_app):
     menu_id = int(menuid)
     submenu_id = int(submenuid)
-    response = test_app.delete(
-        f'/api/v1/menus/{menu_id}/submenus/{submenu_id}',
+    response = await test_app.delete(
+        f"/api/v1/menus/{menu_id}/submenus/{submenu_id}",
     )
 
     assert response.status_code == 200
     assert response.json() == {
-        'status': True,
-        'message': 'The submenu has been deleted',
+        "status": True,
+        "message": "The submenu has been deleted",
     }
 
 
-def test_delete_menu(test_app):
+async def test_delete_menu(test_app):
     menu_id = int(menuid)
-    response = test_app.delete(f'/api/v1/menus/{menu_id}')
+    response = await test_app.delete(f"/api/v1/menus/{menu_id}")
 
     assert response.status_code == 200
     assert response.json() == {
-        'status': True,
-        'message': 'The menu has been deleted',
+        "status": True,
+        "message": "The menu has been deleted",
     }
+
+
+async def test_fulldb(test_app):
+    response = await test_app.post("/api/v1/fulldb")
+
+    assert response.status_code == 201
+    assert response.json() == {"status": "success"}

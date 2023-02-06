@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String
 
 
 class Menu(Base):
-    __tablename__ = 'menus'
+    __tablename__ = "menus"
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
