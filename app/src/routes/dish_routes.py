@@ -1,8 +1,6 @@
 import http
 
-from database import get_db
-from fastapi import APIRouter, Body, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Body
 from src.responses.dish_resp import DishResp
 from src.schem.schem_req.dish_mod_req import CreateDishReq, UpdateDishReq
 from src.schem.schem_resp.dish_mod_resp import (
@@ -21,12 +19,8 @@ router = APIRouter()
     summary="Список блюд",
     status_code=http.HTTPStatus.OK,
 )
-async def get_dishes(
-    menu_id,
-    submenu_id,
-    db: AsyncSession = Depends(get_db),
-):
-    return await DishResp.get_dishes(menu_id, submenu_id, db)
+async def get_dishes(menu_id, submenu_id):
+    return await DishResp.get_dishes(menu_id, submenu_id)
 
 
 @router.get(
@@ -35,18 +29,8 @@ async def get_dishes(
     summary="Конкретное блюдо",
     status_code=http.HTTPStatus.OK,
 )
-async def get_dish(
-    menu_id,
-    submenu_id,
-    dish_id,
-    db: AsyncSession = Depends(get_db),
-):
-    return await DishResp.get_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        db,
-    )
+async def get_dish(menu_id, submenu_id, dish_id):
+    return await DishResp.get_dish(menu_id, submenu_id, dish_id)
 
 
 @router.post(
@@ -55,18 +39,8 @@ async def get_dish(
     summary="Создать блюдо",
     status_code=http.HTTPStatus.CREATED,
 )
-async def create_dish(
-    menu_id,
-    submenu_id,
-    data: CreateDishReq = Body(),
-    db: AsyncSession = Depends(get_db),
-):
-    return await DishResp.create_dish(
-        menu_id,
-        submenu_id,
-        data,
-        db,
-    )
+async def create_dish(menu_id, submenu_id, data: CreateDishReq = Body()):
+    return await DishResp.create_dish(menu_id, submenu_id, data)
 
 
 @router.patch(
@@ -76,19 +50,9 @@ async def create_dish(
     status_code=http.HTTPStatus.OK,
 )
 async def edit_dish(
-    menu_id,
-    submenu_id,
-    dish_id,
-    data: UpdateDishReq = Body(),
-    db: AsyncSession = Depends(get_db),
+    menu_id, submenu_id, dish_id, data: UpdateDishReq = Body()
 ):
-    return await DishResp.edit_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        data,
-        db,
-    )
+    return await DishResp.edit_dish(menu_id, submenu_id, dish_id, data)
 
 
 @router.delete(
@@ -97,15 +61,5 @@ async def edit_dish(
     summary="Удалить блюдо",
     status_code=http.HTTPStatus.OK,
 )
-async def delete_dish(
-    menu_id,
-    submenu_id,
-    dish_id,
-    db: AsyncSession = Depends(get_db),
-):
-    return await DishResp.delete_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        db,
-    )
+async def delete_dish(menu_id, submenu_id, dish_id):
+    return await DishResp.delete_dish(menu_id, submenu_id, dish_id)

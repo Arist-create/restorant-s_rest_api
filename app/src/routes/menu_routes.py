@@ -1,8 +1,6 @@
 import http
 
-from database import get_db
-from fastapi import APIRouter, Body, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Body
 from src.responses.menu_resp import MenuResp
 from src.schem.schem_req.menu_mod_req import CreateMenuReq, UpdateMenuReq
 from src.schem.schem_resp.menu_mod_resp import (
@@ -21,8 +19,8 @@ router = APIRouter()
     summary="Список меню",
     status_code=http.HTTPStatus.OK,
 )
-async def get_menus(db: AsyncSession = Depends(get_db)):
-    return await MenuResp.get_menus(db)
+async def get_menus():
+    return await MenuResp.get_menus()
 
 
 @router.get(
@@ -31,8 +29,8 @@ async def get_menus(db: AsyncSession = Depends(get_db)):
     summary="Конкретное меню",
     status_code=http.HTTPStatus.OK,
 )
-async def get_menu(menu_id, db: AsyncSession = Depends(get_db)):
-    return await MenuResp.get_menu(menu_id, db)
+async def get_menu(menu_id):
+    return await MenuResp.get_menu(menu_id)
 
 
 @router.post(
@@ -41,10 +39,8 @@ async def get_menu(menu_id, db: AsyncSession = Depends(get_db)):
     summary="Создать меню",
     status_code=http.HTTPStatus.CREATED,
 )
-async def create_menu(
-    data: CreateMenuReq = Body(), db: AsyncSession = Depends(get_db)
-):
-    return await MenuResp.create_menu(data, db)
+async def create_menu(data: CreateMenuReq = Body()):
+    return await MenuResp.create_menu(data)
 
 
 @router.patch(
@@ -53,12 +49,8 @@ async def create_menu(
     summary="Обновить меню",
     status_code=http.HTTPStatus.OK,
 )
-async def edit_menu(
-    menu_id,
-    data: UpdateMenuReq = Body(),
-    db: AsyncSession = Depends(get_db),
-):
-    return await MenuResp.edit_menu(menu_id, data, db)
+async def edit_menu(menu_id, data: UpdateMenuReq = Body()):
+    return await MenuResp.edit_menu(menu_id, data)
 
 
 @router.delete(
@@ -67,5 +59,5 @@ async def edit_menu(
     summary="Удалить меню",
     status_code=http.HTTPStatus.OK,
 )
-async def delete_menu(menu_id, db: AsyncSession = Depends(get_db)):
-    return await MenuResp.delete_menu(menu_id, db)
+async def delete_menu(menu_id):
+    return await MenuResp.delete_menu(menu_id)

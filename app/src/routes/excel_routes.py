@@ -1,8 +1,7 @@
 import http
 
-from database import get_db
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
 from src.DAO.excel_DAO import Excel
 from src.responses.excel_resp import ExcelResp
 from src.schem.schem_resp.excel_mod_resp import FullDbResp, RunTaskResp
@@ -16,8 +15,8 @@ router = APIRouter()
     summary="Заполнить базу данных",
     status_code=http.HTTPStatus.CREATED,
 )
-async def excel(db: AsyncSession = Depends(get_db)):
-    return await Excel.full_db(db)
+async def excel():
+    return await Excel.full_db()
 
 
 @router.post(
@@ -26,14 +25,15 @@ async def excel(db: AsyncSession = Depends(get_db)):
     summary="Запросить генерацию Excel файла",
     status_code=http.HTTPStatus.CREATED,
 )
-async def run_task(db: AsyncSession = Depends(get_db)):
-    return await ExcelResp.run_task(db)
+async def run_task():
+    return await ExcelResp.run_task()
 
 
 @router.get(
     "/api/v1/tasks/{task_id}",
     summary="Получить Excel файл",
     status_code=http.HTTPStatus.OK,
+    response_class=FileResponse,
 )
 async def get_excel_file(task_id):
     return await ExcelResp.get_excel_file(task_id)

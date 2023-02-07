@@ -1,6 +1,5 @@
 import json
 
-from conftest import AsyncClient
 from database import AsyncSession, engine, get_db, init_db, sessionmaker
 from main import app
 
@@ -19,7 +18,7 @@ async def override_get_db() -> AsyncSession:
 app.dependency_overrides[get_db] = override_get_db
 
 
-async def test_create_menu(test_app: AsyncClient):
+async def test_create_menu(test_app):
     await init_db()
     test_request = {"title": "Menu 1", "description": "My menu 1"}
     response = await test_app.post(

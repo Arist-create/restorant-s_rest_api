@@ -1,63 +1,71 @@
+from database import get_db
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.table_models.dish import Dish
 from src.table_models.menu import Menu
 from src.table_models.submenu import Submenu
 
 
 class MenuDao:
-    @staticmethod
-    async def get_menus(db: AsyncSession):
+    async def get_menus():  # type: ignore
+        db = await get_db()
         result = await db.execute(select(Menu))
         menus = result.scalars().all()
-
-        arr: list = []
+        arr = []
         for i in menus:
-            submenus_count = await db.execute(
+            result = await db.execute(
                 select(Submenu).filter(Submenu.menu_id == i.id)
             )
-            dishes_count = await db.execute(
-                select(Dish).filter(Dish.menu_id == i.id)
-            )
+            submenus = result.scalars().all()
+            dishes_count = 0
+            for j in submenus:
+                result = await db.execute(
+                    select(Dish).filter(Dish.submenu_id == j.id)
+                )
+                dishes = result.scalars().all()
+                dishes_count += len(dishes)
+
             arr.append(
                 {
                     "id": str(i.id),
                     "title": i.title,
                     "description": i.description,
-                    "submenus_count": len(submenus_count.scalars().all()),
-                    "dishes_count": len(dishes_count.scalars().all()),
+                    "submenus_count": len(submenus),
+                    "dishes_count": dishes_count,
                 }
             )
+        await db.close()
         return arr
 
-    @staticmethod
-    async def get_menu(menu_id, db: AsyncSession):
+    async def get_menu(menu_id):
+        db = await get_db()
         result = await db.execute(select(Menu).filter(Menu.id == int(menu_id)))
         try:
             menu = result.scalars().one()
 
-            submenus_count = await db.execute(
+            result = await db.execute(
                 select(Submenu).filter(Submenu.menu_id == menu.id)
             )
-            dishes_count = await db.execute(
-                select(Dish).filter(Dish.menu_id == menu.id)
-            )
+            submenus = result.scalars().all()
+            dishes_count = 0
+            for i in submenus:
+                result = await db.execute(
+                    select(Dish).filter(Dish.submenu_id == i.id)
+                )
+                dishes = result.scalars().all()
+                dishes_count += len(dishes)
+            await db.close()
             return {
                 "id": str(menu.id),
                 "title": menu.title,
                 "description": menu.description,
-                "submenus_count": len(
-                    submenus_count.scalars().all(),
-                ),
-                "dishes_count": len(
-                    dishes_count.scalars().all(),
-                ),
+                "submenus_count": len(submenus),
+                "dishes_count": dishes_count,
             }
         except Exception:
             return
 
-    @staticmethod
-    async def create_menu(data, db: AsyncSession):
+    async def create_menu(data):
+        db = await get_db()
         menu = Menu(
             title=getattr(data, "title"),
             description=getattr(data, "description"),
@@ -65,22 +73,28 @@ class MenuDao:
         db.add(menu)
         await db.commit()
         await db.refresh(menu)
-        submenus_count = await db.execute(
+        result = await db.execute(
             select(Submenu).filter(Submenu.menu_id == menu.id)
         )
-        dishes_count = await db.execute(
-            select(Dish).filter(Dish.menu_id == menu.id)
-        )
+        submenus = result.scalars().all()
+        dishes_count = 0
+        for i in submenus:
+            result = await db.execute(
+                select(Dish).filter(Dish.submenu_id == i.id)
+            )
+            dishes = result.scalars().all()
+            dishes_count += len(dishes)
+        await db.close()
         return {
             "id": str(menu.id),
             "title": menu.title,
             "description": menu.description,
-            "submenus_count": len(submenus_count.scalars().all()),
-            "dishes_count": len(dishes_count.scalars().all()),
+            "submenus_count": len(submenus),
+            "dishes_count": dishes_count,
         }
 
-    @staticmethod
-    async def edit_menu(menu_id, data, db: AsyncSession):
+    async def edit_menu(menu_id, data):
+        db = await get_db()
         result = await db.execute(select(Menu).filter(Menu.id == int(menu_id)))
         try:
             menu = result.scalars().one()
@@ -88,37 +102,46 @@ class MenuDao:
             menu.description = data.description
             await db.commit()
             await db.refresh(menu)
-            submenus_count = await db.execute(
+            result = await db.execute(
                 select(Submenu).filter(Submenu.menu_id == menu.id)
             )
-            dishes_count = await db.execute(
-                select(Dish).filter(Dish.menu_id == menu.id)
-            )
+            submenus = result.scalars().all()
+            dishes_count = 0
+            for i in submenus:
+                result = await db.execute(
+                    select(Dish).filter(Dish.submenu_id == i.id)
+                )
+                dishes = result.scalars().all()
+                dishes_count += len(dishes)
+            await db.close()
             return {
                 "id": str(menu.id),
                 "title": menu.title,
                 "description": menu.description,
-                "submenus_count": len(submenus_count.scalars().all()),
-                "dishes_count": len(dishes_count.scalars().all()),
+                "submenus_count": len(submenus),
+                "dishes_count": dishes_count,
             }
         except Exception:
             return
 
-    @staticmethod
-    async def delete_menu(menu_id, db: AsyncSession):
+    async def delete_menu(menu_id):
+        db = await get_db()
         result = await db.execute(select(Menu).filter(Menu.id == int(menu_id)))
         menu = result.scalars().one()
         await db.delete(menu)
         result = await db.execute(
-            select(Submenu).filter(Submenu.menu_id == int(menu_id))
+            select(Submenu).filter(
+                Submenu.menu_id == int(menu_id)  # type: ignore
+            )
         )
         submenus = result.scalars().all()
         for i in submenus:
             await db.delete(i)
-        result = await db.execute(
-            select(Dish).filter(Dish.menu_id == int(menu_id))
-        )
-        dishes = result.scalars().all()
-        for i in dishes:
-            await db.delete(i)
+            result = await db.execute(
+                select(Dish).filter(Dish.submenu_id == i.id)  # type: ignore
+            )
+            dishes = result.scalars().all()
+            for j in dishes:
+                await db.delete(j)
         await db.commit()
+        await db.close()

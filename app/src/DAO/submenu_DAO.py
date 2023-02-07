@@ -1,17 +1,19 @@
+from database import get_db
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.table_models.dish import Dish
 from src.table_models.submenu import Submenu
 
 
 class SubmenuDao:
-    @staticmethod
-    async def get_submenus(menu_id, db: AsyncSession):
+    async def get_submenus(menu_id):
+        db = await get_db()
         result = await db.execute(
-            select(Submenu).filter(Submenu.menu_id == int(menu_id))
+            select(Submenu).filter(
+                Submenu.menu_id == int(menu_id)
+            )  # type: ignore
         )
         submenus = result.scalars().all()
-        arr: list = []
+        arr = []
         for i in submenus:
             dishes_count = await db.execute(
                 select(Dish).filter(Dish.submenu_id == i.id)
@@ -26,24 +28,25 @@ class SubmenuDao:
                     ),
                 }
             )
+        await db.close()
         return arr
 
-    @staticmethod
-    async def get_submenu(menu_id, submenu_id, db: AsyncSession):
+    async def get_submenu(menu_id, submenu_id):
+        db = await get_db()
         result = await db.execute(
             select(Submenu).filter(
-                Submenu.menu_id == int(menu_id),
-                Submenu.id == int(submenu_id),
+                Submenu.menu_id == int(menu_id),  # type: ignore
+                Submenu.id == int(submenu_id),  # type: ignore
             )
         )
         try:
             submenu = result.scalars().one()
             dishes_count = await db.execute(
                 select(Dish).filter(
-                    Dish.submenu_id == int(submenu_id),
-                    Dish.menu_id == int(menu_id),
+                    Dish.submenu_id == int(submenu_id),  # type: ignore
                 )
             )
+            await db.close()
             return {
                 "id": str(submenu.id),
                 "title": submenu.title,
@@ -55,10 +58,10 @@ class SubmenuDao:
         except Exception:
             return
 
-    @staticmethod
-    async def create_submenu(menu_id, data, db: AsyncSession):
+    async def create_submenu(menu_id, data):
+        db = await get_db()
         submenu = Submenu(
-            menu_id=int(menu_id),
+            menu_id=int(menu_id),  # type: ignore
             title=getattr(
                 data,
                 "title",
@@ -70,9 +73,10 @@ class SubmenuDao:
         await db.refresh(submenu)
         dishes_count = await db.execute(
             select(Dish).filter(
-                Dish.submenu_id == submenu.id, Dish.menu_id == int(menu_id)
+                Dish.submenu_id == submenu.id,  # type: ignore
             )
         )
+        await db.close()
         return {
             "id": str(submenu.id),
             "title": submenu.title,
@@ -80,12 +84,11 @@ class SubmenuDao:
             "dishes_count": len(dishes_count.scalars().all()),
         }
 
-    @staticmethod
-    async def edit_submenu(menu_id, submenu_id, data, db: AsyncSession):
+    async def edit_submenu(menu_id, submenu_id, data):
+        db = await get_db()
         result = await db.execute(
             select(Submenu).filter(
-                Submenu.menu_id == int(menu_id),
-                Submenu.id == int(submenu_id),
+                Submenu.id == int(submenu_id),  # type: ignore
             )
         )
         try:
@@ -96,10 +99,10 @@ class SubmenuDao:
             await db.refresh(submenu)
             dishes_count = await db.execute(
                 select(Dish).filter(
-                    Dish.submenu_id == int(submenu_id),
-                    Dish.menu_id == int(menu_id),
+                    Dish.submenu_id == int(submenu_id),  # type: ignore
                 )
             )
+            await db.close()
             return {
                 "id": str(submenu.id),
                 "title": submenu.title,
@@ -111,22 +114,23 @@ class SubmenuDao:
         except Exception:
             return
 
-    @staticmethod
-    async def delete_submenu(menu_id, submenu_id, db: AsyncSession):
+    async def delete_submenu(menu_id, submenu_id):
+        db = await get_db()
         result = await db.execute(
             select(Submenu).filter(
-                Submenu.menu_id == int(menu_id),
-                Submenu.id == int(submenu_id),
+                Submenu.menu_id == int(menu_id),  # type: ignore
+                Submenu.id == int(submenu_id),  # type: ignore
             )
         )
         submenu = result.scalars().one()
         await db.delete(submenu)
         result = await db.execute(
             select(Dish).filter(
-                Dish.submenu_id == int(submenu_id),
+                Dish.submenu_id == int(submenu_id),  # type: ignore
             )
         )
         dishes = result.scalars().all()
         for i in dishes:
             await db.delete(i)
         await db.commit()
+        await db.close()

@@ -1,24 +1,19 @@
+from database import get_db
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.table_models.dish import Dish
 
 
 class DishDao:
-    @staticmethod
-    async def get_dishes(
-        menu_id,
-        submenu_id,
-        db: AsyncSession,
-    ):
+    async def get_dishes(submenu_id):
+        db = await get_db()
         result = await db.execute(
             select(Dish).filter(
-                Dish.menu_id == int(menu_id),
-                Dish.submenu_id == int(submenu_id),
+                Dish.submenu_id == int(submenu_id),  # type: ignore
             )
         )
         dishes = result.scalars().all()
 
-        arr: list = [
+        arr = [
             {
                 "id": str(i.id),
                 "title": i.title,
@@ -27,22 +22,18 @@ class DishDao:
             }
             for i in dishes
         ]
+        await db.close()
         return arr
 
-    @staticmethod
-    async def get_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        db: AsyncSession,
-    ):
+    async def get_dish(submenu_id, dish_id):
+        db = await get_db()
         result = await db.execute(
             select(Dish).filter(
-                Dish.menu_id == int(menu_id),
-                Dish.submenu_id == int(submenu_id),
-                Dish.id == int(dish_id),
+                Dish.submenu_id == int(submenu_id),  # type: ignore
+                Dish.id == int(dish_id),  # type: ignore
             )
         )
+        await db.close()
         try:
             dish = result.scalars().one()
             return {
@@ -54,16 +45,10 @@ class DishDao:
         except Exception:
             return
 
-    @staticmethod
-    async def create_dish(
-        menu_id,
-        submenu_id,
-        data,
-        db: AsyncSession,
-    ):
+    async def create_dish(submenu_id, data):
+        db = await get_db()
         dish = Dish(
-            menu_id=int(menu_id),
-            submenu_id=int(submenu_id),
+            submenu_id=int(submenu_id),  # type: ignore
             title=getattr(data, "title"),
             description=getattr(data, "description"),
             price=getattr(data, "price"),
@@ -71,6 +56,7 @@ class DishDao:
         db.add(dish)
         await db.commit()
         await db.refresh(dish)
+        await db.close()
         return {
             "id": str(dish.id),
             "title": dish.title,
@@ -78,19 +64,12 @@ class DishDao:
             "price": dish.price,
         }
 
-    @staticmethod
-    async def edit_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        data,
-        db: AsyncSession,
-    ):
+    async def edit_dish(submenu_id, dish_id, data):
+        db = await get_db()
         result = await db.execute(
             select(Dish).filter(
-                Dish.menu_id == int(menu_id),
-                Dish.submenu_id == int(submenu_id),
-                Dish.id == int(dish_id),
+                Dish.submenu_id == int(submenu_id),  # type: ignore
+                Dish.id == int(dish_id),  # type: ignore
             )
         )
         try:
@@ -100,6 +79,7 @@ class DishDao:
             dish.price = data.price
             await db.commit()
             await db.refresh(dish)
+            await db.close()
             return {
                 "id": str(dish.id),
                 "title": dish.title,
@@ -109,20 +89,15 @@ class DishDao:
         except Exception:
             return
 
-    @staticmethod
-    async def delete_dish(
-        menu_id,
-        submenu_id,
-        dish_id,
-        db: AsyncSession,
-    ):
+    async def delete_dish(submenu_id, dish_id):
+        db = await get_db()
         result = await db.execute(
             select(Dish).filter(
-                Dish.menu_id == int(menu_id),
-                Dish.submenu_id == int(submenu_id),
-                Dish.id == int(dish_id),
+                Dish.submenu_id == int(submenu_id),  # type: ignore
+                Dish.id == int(dish_id),  # type: ignore
             )
         )
         dish = result.scalars().one()
         await db.delete(dish)
         await db.commit()
+        await db.close()
