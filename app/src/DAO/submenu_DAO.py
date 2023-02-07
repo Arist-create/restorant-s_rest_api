@@ -118,7 +118,6 @@ class SubmenuDao:
         db = await get_db()
         result = await db.execute(
             select(Submenu).filter(
-                Submenu.menu_id == int(menu_id),  # type: ignore
                 Submenu.id == int(submenu_id),  # type: ignore
             )
         )

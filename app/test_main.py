@@ -1,21 +1,6 @@
 import json
 
-from database import AsyncSession, engine, get_db, init_db, sessionmaker
-from main import app
-
-
-async def override_get_db() -> AsyncSession:
-    async_session = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
-    async with async_session() as db:
-        try:
-            yield db
-        finally:
-            await db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
+from database import init_db
 
 
 async def test_create_menu(test_app):
