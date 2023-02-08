@@ -9,8 +9,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=menu
+
 
   rabbitmq:
     image: rabbitmq:latest
@@ -29,6 +32,8 @@ services:
     restart: on-failure
     volumes:
       - .:/code
+    environment:
+      - DATABASE_URL_P=postgresql+asyncpg://postgres:mypassword@db/menu
     depends_on:
       cache:
         condition: service_healthy
@@ -54,6 +59,8 @@ services:
       - .:/code
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL_P=postgresql+asyncpg://postgres:mypassword@db/menu
     depends_on:
       db:
         condition: service_healthy

@@ -1,5 +1,4 @@
 import openpyxl
-from database import get_db
 from openpyxl.styles.borders import Border, Side
 from src.table_models.dish import Dish
 from src.table_models.menu import Menu
@@ -85,21 +84,20 @@ dishes = [
 ]
 
 
-class Excel:
-    async def full_db():  # type: ignore
-        db = await get_db()
+class ExcelDao:
+    async def full_db(excel_service):  # type: ignore
         for i in menus:
             menu = Menu(title=i["title"], description=i["description"])
-            db.add(menu)
-            await db.commit()
+            excel_service.add(menu)
+            await excel_service.commit()
         for i in submenus:
             submenu = Submenu(
                 menu_id=i["menu_id"],
                 title=i["title"],
                 description=i["description"],
             )
-            db.add(submenu)
-            await db.commit()
+            excel_service.add(submenu)
+            await excel_service.commit()
         for i in dishes:
             dish = Dish(
                 submenu_id=i["submenu_id"],
@@ -107,14 +105,12 @@ class Excel:
                 description=i["description"],
                 price=i["price"],
             )
-            db.add(dish)
-            await db.commit()
-        await db.close()
+            excel_service.add(dish)
+            await excel_service.commit()
         return {"status": "success"}
 
-    async def get_json():  # type: ignore
-        db = await get_db()
-        arr = await db.execute(
+    async def get_json(excel_service):  # type: ignore
+        arr = await excel_service.execute(
             """SELECT json_build_object(
             'menus', (SELECT json_agg(row_to_json("menus")) from "menus"),
             'submenus', (SELECT json_agg(row_to_json("submenus")) from "submenus"),
@@ -122,7 +118,6 @@ class Excel:
         )"""
         )
         new_arr = arr.scalars().one()
-        await db.close()
         return new_arr
 
     def get_excel(new_arr):

@@ -23,4 +23,7 @@ async def get_db() -> AsyncSession:
         engine, class_=AsyncSession, expire_on_commit=False
     )
     async with async_session() as db:
-        return db
+        try:
+            yield db
+        finally:
+            await db.close()

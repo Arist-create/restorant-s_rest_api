@@ -1,9 +1,8 @@
 import http
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
-from src.DAO.excel_DAO import Excel
-from src.responses.excel_resp import ExcelResp
+from src.responses.excel_resp import ExcelResp, get_excel_service
 from src.schem.schem_resp.excel_mod_resp import FullDbResp, RunTaskResp
 
 router = APIRouter()
@@ -15,8 +14,8 @@ router = APIRouter()
     summary="Заполнить базу данных",
     status_code=http.HTTPStatus.CREATED,
 )
-async def excel():
-    return await Excel.full_db()
+async def excel(excel_service=Depends(get_excel_service)):
+    return await ExcelResp.full_db(excel_service)
 
 
 @router.post(
@@ -25,8 +24,8 @@ async def excel():
     summary="Запросить генерацию Excel файла",
     status_code=http.HTTPStatus.CREATED,
 )
-async def run_task():
-    return await ExcelResp.run_task()
+async def run_task(excel_service=Depends(get_excel_service)):
+    return await ExcelResp.run_task(excel_service)
 
 
 @router.get(

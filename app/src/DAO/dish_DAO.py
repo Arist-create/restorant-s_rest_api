@@ -1,12 +1,10 @@
-from database import get_db
 from sqlalchemy import select
 from src.table_models.dish import Dish
 
 
 class DishDao:
-    async def get_dishes(submenu_id):
-        db = await get_db()
-        result = await db.execute(
+    async def get_dishes(submenu_id, dish_service):
+        result = await dish_service.execute(
             select(Dish).filter(
                 Dish.submenu_id == int(submenu_id),  # type: ignore
             )
@@ -22,18 +20,17 @@ class DishDao:
             }
             for i in dishes
         ]
-        await db.close()
+        await dish_service.close()
         return arr
 
-    async def get_dish(submenu_id, dish_id):
-        db = await get_db()
-        result = await db.execute(
+    async def get_dish(submenu_id, dish_id, dish_service):
+        result = await dish_service.execute(
             select(Dish).filter(
                 Dish.submenu_id == int(submenu_id),  # type: ignore
                 Dish.id == int(dish_id),  # type: ignore
             )
         )
-        await db.close()
+        await dish_service.close()
         try:
             dish = result.scalars().one()
             return {
@@ -45,18 +42,17 @@ class DishDao:
         except Exception:
             return
 
-    async def create_dish(submenu_id, data):
-        db = await get_db()
+    async def create_dish(submenu_id, data, dish_service):
         dish = Dish(
             submenu_id=int(submenu_id),  # type: ignore
             title=getattr(data, "title"),
             description=getattr(data, "description"),
             price=getattr(data, "price"),
         )
-        db.add(dish)
-        await db.commit()
-        await db.refresh(dish)
-        await db.close()
+        dish_service.add(dish)
+        await dish_service.commit()
+        await dish_service.refresh(dish)
+        await dish_service.close()
         return {
             "id": str(dish.id),
             "title": dish.title,
@@ -64,9 +60,8 @@ class DishDao:
             "price": dish.price,
         }
 
-    async def edit_dish(submenu_id, dish_id, data):
-        db = await get_db()
-        result = await db.execute(
+    async def edit_dish(submenu_id, dish_id, data, dish_service):
+        result = await dish_service.execute(
             select(Dish).filter(
                 Dish.submenu_id == int(submenu_id),  # type: ignore
                 Dish.id == int(dish_id),  # type: ignore
@@ -77,9 +72,9 @@ class DishDao:
             dish.title = data.title
             dish.description = data.description
             dish.price = data.price
-            await db.commit()
-            await db.refresh(dish)
-            await db.close()
+            await dish_service.commit()
+            await dish_service.refresh(dish)
+            await dish_service.close()
             return {
                 "id": str(dish.id),
                 "title": dish.title,
@@ -89,15 +84,18 @@ class DishDao:
         except Exception:
             return
 
-    async def delete_dish(submenu_id, dish_id):
-        db = await get_db()
-        result = await db.execute(
+    async def delete_dish(submenu_id, dish_id, dish_service):
+        result = await dish_service.execute(
             select(Dish).filter(
                 Dish.submenu_id == int(submenu_id),  # type: ignore
                 Dish.id == int(dish_id),  # type: ignore
             )
         )
-        dish = result.scalars().one()
-        await db.delete(dish)
-        await db.commit()
-        await db.close()
+        if result is None:
+            return None
+        else:
+            dish = result.scalars().one()
+            await dish_service.delete(dish)
+            await dish_service.commit()
+            await dish_service.close()
+            return True

@@ -1,7 +1,7 @@
 import http
 
-from fastapi import APIRouter, Body
-from src.responses.menu_resp import MenuResp
+from fastapi import APIRouter, Body, Depends
+from src.responses.menu_resp import MenuResp, get_menu_service
 from src.schem.schem_req.menu_mod_req import CreateMenuReq, UpdateMenuReq
 from src.schem.schem_resp.menu_mod_resp import (
     CreateMenuResp,
@@ -19,8 +19,8 @@ router = APIRouter()
     summary="Список меню",
     status_code=http.HTTPStatus.OK,
 )
-async def get_menus():
-    return await MenuResp.get_menus()
+async def get_menus(menu_service=Depends(get_menu_service)):
+    return await MenuResp.get_menus(menu_service)
 
 
 @router.get(
@@ -29,8 +29,8 @@ async def get_menus():
     summary="Конкретное меню",
     status_code=http.HTTPStatus.OK,
 )
-async def get_menu(menu_id):
-    return await MenuResp.get_menu(menu_id)
+async def get_menu(menu_id, menu_service=Depends(get_menu_service)):
+    return await MenuResp.get_menu(menu_id, menu_service)
 
 
 @router.post(
@@ -39,8 +39,10 @@ async def get_menu(menu_id):
     summary="Создать меню",
     status_code=http.HTTPStatus.CREATED,
 )
-async def create_menu(data: CreateMenuReq = Body()):
-    return await MenuResp.create_menu(data)
+async def create_menu(
+    data: CreateMenuReq = Body(), menu_service=Depends(get_menu_service)
+):
+    return await MenuResp.create_menu(data, menu_service)
 
 
 @router.patch(
@@ -49,8 +51,12 @@ async def create_menu(data: CreateMenuReq = Body()):
     summary="Обновить меню",
     status_code=http.HTTPStatus.OK,
 )
-async def edit_menu(menu_id, data: UpdateMenuReq = Body()):
-    return await MenuResp.edit_menu(menu_id, data)
+async def edit_menu(
+    menu_id,
+    data: UpdateMenuReq = Body(),
+    menu_service=Depends(get_menu_service),
+):
+    return await MenuResp.edit_menu(menu_id, data, menu_service)
 
 
 @router.delete(
@@ -59,5 +65,5 @@ async def edit_menu(menu_id, data: UpdateMenuReq = Body()):
     summary="Удалить меню",
     status_code=http.HTTPStatus.OK,
 )
-async def delete_menu(menu_id):
-    return await MenuResp.delete_menu(menu_id)
+async def delete_menu(menu_id, menu_service=Depends(get_menu_service)):
+    return await MenuResp.delete_menu(menu_id, menu_service)

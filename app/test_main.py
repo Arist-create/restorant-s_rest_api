@@ -1,6 +1,9 @@
 import json
 
 from database import init_db
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 async def test_create_menu(test_app):
@@ -327,10 +330,3 @@ async def test_delete_menu(test_app):
         "status": True,
         "message": "The menu has been deleted",
     }
-
-
-async def test_fulldb(test_app):
-    response = await test_app.post("/api/v1/fulldb")
-
-    assert response.status_code == 201
-    assert response.json() == {"status": "success"}

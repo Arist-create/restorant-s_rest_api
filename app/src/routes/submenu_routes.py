@@ -1,7 +1,7 @@
 import http
 
-from fastapi import APIRouter, Body
-from src.responses.submenu_resp import SubmenuResp
+from fastapi import APIRouter, Body, Depends
+from src.responses.submenu_resp import SubmenuResp, get_submenu_service
 from src.schem.schem_req.sub_mod_req import CreateSubReq, UpdateSubReq
 from src.schem.schem_resp.submenu_mod_resp import (
     CreateSubmenuResp,
@@ -19,8 +19,8 @@ router = APIRouter()
     summary="Список подменю",
     status_code=http.HTTPStatus.OK,
 )
-async def get_submenus(menu_id):
-    return await SubmenuResp.get_submenus(menu_id)
+async def get_submenus(menu_id, submenu_service=Depends(get_submenu_service)):
+    return await SubmenuResp.get_submenus(menu_id, submenu_service)
 
 
 @router.get(
@@ -29,8 +29,10 @@ async def get_submenus(menu_id):
     summary="Конкретное подменю",
     status_code=http.HTTPStatus.OK,
 )
-async def get_submenu(menu_id, submenu_id):
-    return await SubmenuResp.get_submenu(menu_id, submenu_id)
+async def get_submenu(
+    menu_id, submenu_id, submenu_service=Depends(get_submenu_service)
+):
+    return await SubmenuResp.get_submenu(menu_id, submenu_id, submenu_service)
 
 
 @router.post(
@@ -39,8 +41,12 @@ async def get_submenu(menu_id, submenu_id):
     summary="Создать подменю",
     status_code=http.HTTPStatus.CREATED,
 )
-async def create_submenu(menu_id, data: CreateSubReq = Body()):
-    return await SubmenuResp.create_submenu(menu_id, data)
+async def create_submenu(
+    menu_id,
+    data: CreateSubReq = Body(),
+    submenu_service=Depends(get_submenu_service),
+):
+    return await SubmenuResp.create_submenu(menu_id, data, submenu_service)
 
 
 @router.patch(
@@ -49,8 +55,15 @@ async def create_submenu(menu_id, data: CreateSubReq = Body()):
     summary="Обновить подменю",
     status_code=http.HTTPStatus.OK,
 )
-async def edit_submenu(menu_id, submenu_id, data: UpdateSubReq = Body()):
-    return await SubmenuResp.edit_submenu(menu_id, submenu_id, data)
+async def edit_submenu(
+    menu_id,
+    submenu_id,
+    data: UpdateSubReq = Body(),
+    submenu_service=Depends(get_submenu_service),
+):
+    return await SubmenuResp.edit_submenu(
+        menu_id, submenu_id, data, submenu_service
+    )
 
 
 @router.delete(
@@ -59,5 +72,9 @@ async def edit_submenu(menu_id, submenu_id, data: UpdateSubReq = Body()):
     summary="Удалить подменю",
     status_code=http.HTTPStatus.OK,
 )
-async def delete_submenu(menu_id, submenu_id):
-    return await SubmenuResp.delete_submenu(menu_id, submenu_id)
+async def delete_submenu(
+    menu_id, submenu_id, submenu_service=Depends(get_submenu_service)
+):
+    return await SubmenuResp.delete_submenu(
+        menu_id, submenu_id, submenu_service
+    )

@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  db:
+  db-test:
     image: postgres:15.1-alpine
     ports:
       - "2345:5432"
@@ -9,8 +9,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=menutest
+
 
   cache:
     image: redis:latest
@@ -32,8 +35,10 @@ services:
       - .:/code
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL_P=postgresql+asyncpg://postgres:mypassword@db-test/menutest
     depends_on:
-      db:
+      db-test:
         condition: service_healthy
       cache:
         condition: service_healthy
